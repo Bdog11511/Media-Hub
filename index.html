@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Hub</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22g%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22><stop offset=%220%25%22 stop-color=%22%2360a5fa%22/><stop offset=%22100%25%22 stop-color=%22%23a78bfa%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 rx=%2225%22 fill=%22%230f172a%22/><polygon points=%2235,25 35,75 75,50%22 fill=%22url(%23g)%22/></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-grad-1: #060b14;
+            --bg-grad-2: #111827;
+            --card-bg: rgba(30, 41, 59, 0.4);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.3);
+            --focus-ring: #60a5fa;
+            --badge-bg: rgba(59, 130, 246, 0.15);
+            --badge-text: #93c5fd;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-grad-2);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.12), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(167, 139, 250, 0.12), transparent 25%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1300px;
+            width: 100%;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1.5px;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 20px 30px;
+            font-size: 1.2rem;
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            font-family: 'Inter', sans-serif;
+        }
+
+        #searchInput::placeholder {
+            color: #475569;
+        }
+
+        #searchInput:focus {
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 0 30px var(--accent-glow), inset 0 0 10px rgba(255,255,255,0.02);
+            background: rgba(15, 23, 42, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .shortcut-hint {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 600;
+            pointer-events: none;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            padding: 24px;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            min-height: 120px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            outline: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card:hover, .card:focus {
+            transform: translateY(-5px);
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(96, 165, 250, 0.3);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px var(--accent-glow);
+        }
+
+        .card:hover::before, .card:focus::before {
+            opacity: 1;
+        }
+
+        .card:focus {
+            border-color: var(--focus-ring);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2), 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1.15rem;
+            letter-spacing: -0.3px;
+        }
+
+        .card-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            width: fit-content;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .badge.gray {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .badge.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .card-footer {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-top: 1px solid var(--card-border);
+            padding-top: 15px;
+            transition: color 0.3s;
+        }
+
+        .card-footer svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transform: translateX(0);
+            transition: transform 0.3s, color 0.3s;
+        }
+
+        .card:hover .card-footer, .card:focus .card-footer {
+            color: var(--text-main);
+        }
+
+        .card:hover .card-footer svg, .card:focus .card-footer svg {
+            transform: translateX(5px);
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Media Hub</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search for movies or shows..." autocomplete="off">
+            <div class="shortcut-hint">/</div>
+        </div>
+    </header>
+
+    <div class="grid" id="sitesGrid"></div>
+</div>
+
+<script>
+    const sites = [
+        { name: "Cineby", url: "https://cineby.io", searchFormat: null, index: 0 },
+        { name: "Xprime", url: "https://xprime.su", searchFormat: null, index: 1 },
+        { name: "Rivestream", url: "https://rivestream.org", searchFormat: "https://rivestream.org/search", index: 2 },
+        { name: "Lordflix", url: "https://lordflix.org", searchFormat: "https://lordflix.org/search", index: 3 },
+        { name: "67Movies", url: "https://67movies.net", searchFormat: null, index: 4 },
+        { name: "FlickyStream", url: "https://flickystream.ru", searchFormat: "https://flickystream.ru/search?q={query}", index: 5 },
+        { name: "Aether", url: "https://aether.mom", searchFormat: "https://aether.mom/browse/{query}", index: 6 },
+        { name: "Shuttletv", url: "https://shuttletv.su", searchFormat: "https://shuttletv.su/search?q={query}", index: 7 },
+        { name: "Flixer", url: "https://flixer.su", searchFormat: "https://flixer.su/search?q={query}", index: 8 },
+        { name: "Hexa", url: "https://hexa.su", searchFormat: "https://hexa.su/search?q={query}&type=all", index: 9 },
+        { name: "PrimeShows", url: "https://primeshows.uk", searchFormat: "https://primeshows.uk/search?q={query}", index: 10 },
+        { name: "Cinemaos", url: "https://cinemaos.live", searchFormat: null, index: 11 },
+        { name: "Cinezo", url: "https://cinezo.net", searchFormat: null, index: 12 },
+        { name: "flyX", url: "https://tv.vynx.cc", searchFormat: "https://tv.vynx.cc/search?q={query}&type=movie", index: 13 },
+        { name: "Filmex", url: "https://filmex.to", searchFormat: "https://filmex.to/search?q={query}", index: 14 },
+        { name: "Filmytime", url: "https://www.filmytime.site", searchFormat: "https://www.filmytime.site/search?q={query}", index: 15 },
+        { name: "Cinebolt", url: "https://cinebolt.net", searchFormat: "https://cinebolt.net/search?q={query}", index: 16 },
+        { name: "Nexvid", url: "https://nexvid.online", searchFormat: null, index: 17 },
+        { name: "Icefy", url: "https://icefy.top", searchFormat: "https://icefy.top/search?q={query}", index: 18 },
+        { name: "Pstream", url: "https://pstream.net", searchFormat: "https://pstream.net/browse/{query}", index: 19 },
+        { name: "Sanuflix", url: "https://sanuflix-web-v2.pages.dev", searchFormat: "https://sanuflix-web-v2.pages.dev/search?q={query}", index: 20 },
+        { name: "Dulo TV", url: "https://dulo.tv", searchFormat: null, index: 21 },
+        { name: "Zetmoon", url: "https://zetmoon.live", searchFormat: "https://zetmoon.live/search", index: 22 }
+    ];
+
+    const grid = document.getElementById('sitesGrid');
+    const searchInput = document.getElementById('searchInput');
+
+    function renderSites(query = "") {
+        grid.innerHTML = ""; 
+        let displaySites = [...sites];
+
+        if (query.trim() !== "") {
+            displaySites.sort((a, b) => {
+                const getTier = (site) => {
+                    if (site.searchFormat && site.searchFormat.includes('{query}')) return 1; 
+                    if (site.searchFormat && !site.searchFormat.includes('{query}')) return 2; 
+                    return 3; 
+                };
+                return getTier(a) - getTier(b);
+            });
+        } else {
+            displaySites.sort((a, b) => a.index - b.index);
+        }
+        
+        displaySites.forEach((site) => {
+            const a = document.createElement('a');
+            a.className = 'card';
+            a.target = '_blank'; 
+            a.rel = 'noopener noreferrer'; 
+            
+            const initial = site.name.charAt(0).toUpperCase();
+            let href = site.url;
+            let badgeClass = 'gray';
+            let badgeText = 'Homepage';
+            let footerText = 'Open Site';
+            let isSearchActive = query.trim() !== "";
+
+            if (isSearchActive) {
+                if (site.searchFormat && site.searchFormat.includes('{query}')) {
+                    const encodedQuery = encodeURIComponent(query.trim());
+                    href = site.searchFormat.replace('{query}', encodedQuery);
+                    badgeClass = ''; 
+                    badgeText = `Query: "${query}"`;
+                    footerText = 'Search Media';
+                } else if (site.searchFormat && !site.searchFormat.includes('{query}')) {
+                    href = site.searchFormat;
+                    badgeClass = 'warning';
+                    badgeText = 'Site Search Only';
+                    footerText = 'Open Search Page';
+                } else {
+                    badgeText = 'Homepage Only';
+                }
+            }
+
+            a.href = href;
+            
+            a.innerHTML = `
+                <div class="card-header">
+                    <div class="card-icon">${initial}</div>
+                    <div class="card-title">${site.name}</div>
+                </div>
+                <div class="card-body">
+                    <span class="badge ${badgeClass}">${badgeText}</span>
+                </div>
+                <div class="card-footer">
+                    <span>${footerText}</span>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            `;
+            
+            grid.appendChild(a);
+        });
+    }
+
+    renderSites();
+
+    searchInput.addEventListener('input', (e) => {
+        renderSites(e.target.value);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        const isSearchFocused = document.activeElement === searchInput;
+        const cards = Array.from(document.querySelectorAll('.card'));
+        
+        if (e.key === '/' && !isSearchFocused) {
+            e.preventDefault();
+            searchInput.focus();
+            return;
+        }
+
+        if (e.key === 'Enter' && isSearchFocused && cards.length > 0) {
+            e.preventDefault();
+            cards[0].focus();
+            return;
+        }
+
+        const currentIndex = cards.indexOf(document.activeElement);
+        if (currentIndex > -1) {
+            let nextIndex = currentIndex;
+            
+            let columns = 1;
+            if (cards.length > 1) {
+                const topOffset = cards[0].offsetTop;
+                for (let i = 1; i < cards.length; i++) {
+                    if (cards[i].offsetTop === topOffset) columns++;
+                    else break;
+                }
+            }
+
+            switch(e.key) {
+                case 'ArrowRight': nextIndex = currentIndex + 1; break;
+                case 'ArrowLeft': nextIndex = currentIndex - 1; break;
+                case 'ArrowDown': nextIndex = currentIndex + columns; break;
+                case 'ArrowUp': nextIndex = currentIndex - columns; break;
+                case 'Escape': 
+                    e.preventDefault();
+                    searchInput.focus();
+                    return;
+            }
+
+            if (nextIndex >= 0 && nextIndex < cards.length && nextIndex !== currentIndex) {
+                e.preventDefault();
+                cards[nextIndex].focus();
+            }
+        }
+    });
+</script>
+</body>
+</html>
